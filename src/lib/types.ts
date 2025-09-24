@@ -10,8 +10,3 @@ export interface WeatherDataPoint {
   timestamp: Date;
   time: string; 
 }
-
-export interface DailyWeatherData {
-    records: WeatherDataPoint[];
-    summary: string | null;
-}

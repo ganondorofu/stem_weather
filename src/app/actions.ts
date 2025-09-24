@@ -4,12 +4,11 @@ import { db } from '@/lib/firebase';
 import type { WeatherDataPoint } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { summarizeDailyWeather } from '@/ai/flows/summarize-daily-weather';
 
-export async function getDailyWeather(date: Date): Promise<{ records: WeatherDataPoint[], summary: string | null } | { error: string }> {
+export async function getDailyWeather(date: Date): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
   try {
     if (!date) {
-        return { records: [], summary: null };
+        return { records: [] };
     }
     
     const dateString = format(date, 'yyyy-MM-dd');
@@ -19,7 +18,7 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return { records: [], summary: null };
+      return { records: [] };
     }
 
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
@@ -39,31 +38,7 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
       };
     });
 
-    try {
-        const temperatureData = records.map(r => r.temperature);
-        const humidityData = records.map(r => r.humidity);
-        const pressureData = records.map(r => r.pressure);
-    
-        const aiSummary = await summarizeDailyWeather({
-          date: dateString,
-          temperatureData,
-          humidityData,
-          pressureData
-        });
-        
-        return {
-          records,
-          summary: aiSummary.summary
-        };
-
-    } catch (aiError) {
-        console.error("AI summary generation failed:", aiError);
-        // Return data even if AI fails
-        return {
-            records,
-            summary: "Could not generate an AI summary for this data."
-        }
-    }
+    return { records };
 
   } catch (error) {
     console.error("Error fetching weather data:", error);
