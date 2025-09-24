@@ -3,7 +3,7 @@
 import { db } from '@/lib/firebase';
 import type { WeatherDataPoint } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { format } from 'date-fns';
+import { format, toZonedTime } from 'date-fns-tz';
 
 export async function getDailyWeather(date: Date): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
   try {
@@ -24,7 +24,7 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const timestamp = (data.timestamp as Timestamp).toDate();
-      const timeInJST = new Date(timestamp.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+      const timeInJST = toZonedTime(timestamp, 'Asia/Tokyo');
 
       return {
         temperature: data.temperature,
