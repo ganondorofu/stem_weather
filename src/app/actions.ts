@@ -24,17 +24,19 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const timestamp = (data.timestamp as Timestamp).toDate();
+      const timeInJST = new Date(timestamp.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+
       return {
         temperature: data.temperature,
         humidity: data.humidity,
         pressure: data.pressure,
-        hour: data.hour,
-        minute: data.minute,
-        year: data.year,
-        month: data.month,
-        day: data.day,
+        hour: timeInJST.getHours(),
+        minute: timeInJST.getMinutes(),
+        year: timeInJST.getFullYear(),
+        month: timeInJST.getMonth() + 1,
+        day: timeInJST.getDate(),
         timestamp: timestamp,
-        time: format(timestamp, 'HH:mm'),
+        time: `${String(timeInJST.getHours()).padStart(2, '0')}:${String(timeInJST.getMinutes()).padStart(2, '0')}`,
       };
     });
 
@@ -42,10 +44,9 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
 
   } catch (error) {
     console.error("Error fetching weather data:", error);
-    // This could be a configuration or permissions issue.
     if (error instanceof Error && error.message.includes('permission-denied')) {
-         return { error: 'Failed to fetch weather data due to Firestore permissions. Please ensure your Firestore rules allow read access to the weather_data collection.' };
+         return { error: 'Firestoreの権限設定により、気象データの取得に失敗しました。Firestoreのルールでweather_dataコレクションへの読み取りアクセスが許可されていることを確認してください。' };
     }
-    return { error: 'Failed to fetch weather data. Check the server console for more details.' };
+    return { error: '気象データの取得に失敗しました。詳細はサーバーコンソールを確認してください。' };
   }
 }
