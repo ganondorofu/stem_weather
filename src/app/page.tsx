@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { format } from 'date-fns';
-import { Thermometer, Droplets, Gauge, CalendarDays, Sparkles, AlertCircle, CloudOff } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherChart } from '@/components/weather-chart';
 import { getDailyWeather } from '@/app/actions';
 import type { WeatherDataPoint } from '@/lib/types';
@@ -14,7 +14,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [data, setData] = useState<WeatherDataPoint[]>([]);
-  const [summary, setSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -26,10 +25,8 @@ export default function Home() {
       if ('error' in result) {
         setError(result.error);
         setData([]);
-        setSummary(null);
       } else {
         setData(result.records);
-        setSummary(result.summary);
       }
     });
   };
@@ -69,43 +66,6 @@ export default function Home() {
                         disabled={isPending}
                         className="rounded-md border"
                     />
-                </CardContent>
-            </Card>
-
-            <Card className="shadow-md">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="text-primary"/>
-                        Daily Summary
-                    </CardTitle>
-                    <CardDescription>
-                      {date ? format(date, 'MMMM do, yyyy') : 'No date selected'}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="min-h-[150px]">
-                  {isPending && (
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-[75%]" />
-                    </div>
-                  )}
-                  {!isPending && !error && summary && (
-                    <p className="text-sm text-foreground/80">{summary}</p>
-                  )}
-                  {!isPending && !error && data.length > 0 && !summary && (
-                     <p className="text-sm text-muted-foreground">Could not generate a summary for this day.</p>
-                  )}
-                   {!isPending && !error && data.length === 0 && (
-                     <p className="text-sm text-muted-foreground">No data available to generate a summary.</p>
-                  )}
-                  {error && (
-                     <Alert variant="destructive">
-                       <AlertCircle className="h-4 w-4" />
-                       <AlertTitle>Error</AlertTitle>
-                       <AlertDescription>{error}</AlertDescription>
-                     </Alert>
-                  )}
                 </CardContent>
             </Card>
         </div>
