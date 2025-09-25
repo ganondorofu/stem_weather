@@ -24,14 +24,14 @@ export async function GET() {
     const jstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
 
     const latestData = {
-      temperature: data.temperature,
+      pressure: data.pressure,
       timestamp: jstDate.toISOString(),
     };
 
     return NextResponse.json(latestData);
 
   } catch (error) {
-    console.error("Error fetching latest temperature data:", error);
-    return NextResponse.json({ error: '最新の気温データの取得に失敗しました。' }, { status: 500 });
+    console.error("Error fetching latest pressure data:", error);
+    return NextResponse.json({ error: '最新の気圧データの取得に失敗しました。' }, { status: 500 });
   }
 }
