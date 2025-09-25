@@ -40,7 +40,7 @@ export default function Home() {
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      setDate(selectedDate);
+      setDate(new Date(selectedDate));
     }
   };
   
