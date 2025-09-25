@@ -33,7 +33,8 @@ export async function GET() {
     const doc = querySnapshot.docs[0];
     const data = doc.data();
     const utcDate = (data.timestamp as Timestamp).toDate();
-    const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+     // JSTに変換するために9時間加算
+    const jstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
 
     const temperature = data.temperature;
     const humidity = data.humidity;
