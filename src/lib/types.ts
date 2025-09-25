@@ -9,4 +9,5 @@ export interface WeatherDataPoint {
   day: number;
   timestamp: Date;
   time: string; 
+  wbgt?: number;
 }

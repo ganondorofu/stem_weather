@@ -26,7 +26,7 @@ import type { WeatherDataPoint } from '@/lib/types';
 
 interface WeatherChartProps {
   data: WeatherDataPoint[];
-  dataKey: keyof Pick<WeatherDataPoint, 'temperature' | 'humidity' | 'pressure'>;
+  dataKey: keyof Pick<WeatherDataPoint, 'temperature' | 'humidity' | 'pressure' | 'wbgt'>;
   title: string;
   description: string;
   unit: string;
@@ -52,12 +52,14 @@ export function WeatherChart({
 
   const yDomain: [string | number, string | number] = ['auto', 'auto'];
   if (data.length > 0) {
-    const values = data.map(d => d[dataKey]);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const padding = (max-min) * 0.1 || 1;
-    yDomain[0] = Math.floor(min - padding);
-    yDomain[1] = Math.ceil(max + padding);
+    const values = data.map(d => d[dataKey]).filter(v => v !== undefined) as number[];
+    if (values.length > 0) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const padding = (max-min) * 0.1 || 1;
+      yDomain[0] = Math.floor(min - padding);
+      yDomain[1] = Math.ceil(max + padding);
+    }
   }
 
 
@@ -105,7 +107,10 @@ export function WeatherChart({
               }}
               content={
                 <ChartTooltipContent
-                  formatter={(value) => `${Number(value).toFixed(2)}${unit}`}
+                  formatter={(value, name, props) => {
+                     if (typeof value !== 'number') return null;
+                     return `${value.toFixed(2)}${unit}`;
+                  }}
                   indicator="dot"
                 />
               }
@@ -117,6 +122,7 @@ export function WeatherChart({
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6 }}
+              connectNulls
             />
           </LineChart>
         </ChartContainer>
