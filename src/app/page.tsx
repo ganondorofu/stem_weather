@@ -96,7 +96,7 @@ export default function Home() {
                 data={data}
                 dataKey="temperature"
                 title="気温"
-                description="1時間ごとの気温"
+                description="気温の変化"
                 unit="°C"
                 Icon={Thermometer}
                 strokeColor="hsl(var(--chart-1))"
@@ -105,7 +105,7 @@ export default function Home() {
                 data={data}
                 dataKey="humidity"
                 title="湿度"
-                description="1時間ごとの湿度"
+                description="湿度の変化"
                 unit="%"
                 Icon={Droplets}
                 strokeColor="hsl(var(--chart-2))"
@@ -114,7 +114,7 @@ export default function Home() {
                 data={data}
                 dataKey="pressure"
                 title="気圧"
-                description="1時間ごとの気圧"
+                description="気圧の変化"
                 unit=" hPa"
                 Icon={Gauge}
                 strokeColor="hsl(var(--chart-4))"
