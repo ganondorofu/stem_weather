@@ -4,6 +4,20 @@ import { db } from '@/lib/firebase';
 import type { WeatherDataPoint } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 
+function calculateWBGT(Ta: number, RH: number): number {
+  // 湿球温度（Tw）の計算（Stullの近似式）
+  const Tw =
+    Ta * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) +
+    Math.atan(Ta + RH) -
+    Math.atan(RH - 1.676331) +
+    0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) -
+    4.686035;
+
+  // 屋内WBGTの計算
+  const WBGT = 0.7 * Tw + 0.3 * Ta;
+  return WBGT;
+}
+
 export async function getDailyWeather(dateString: string): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
   try {
     if (!dateString) {
@@ -22,19 +36,24 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const utcDate = (data.timestamp as Timestamp).toDate();
-      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+      const jstDate = new Date(utcDate.getTime()); // JSTとして扱う
+
+      const temperature = data.temperature;
+      const humidity = data.humidity;
+      const wbgt = calculateWBGT(temperature, humidity);
 
       return {
-        temperature: data.temperature,
-        humidity: data.humidity,
+        temperature: temperature,
+        humidity: humidity,
         pressure: data.pressure,
-        hour: jstDate.getUTCHours(),
-        minute: jstDate.getUTCMinutes(),
-        year: jstDate.getUTCFullYear(),
-        month: jstDate.getUTCMonth() + 1,
-        day: jstDate.getUTCDate(),
+        hour: jstDate.getHours(),
+        minute: jstDate.getMinutes(),
+        year: jstDate.getFullYear(),
+        month: jstDate.getMonth() + 1,
+        day: jstDate.getDate(),
         timestamp: jstDate,
-        time: `${String(jstDate.getUTCHours()).padStart(2, '0')}:${String(jstDate.getUTCMinutes()).padStart(2, '0')}`,
+        time: `${String(jstDate.getHours()).padStart(2, '0')}:${String(jstDate.getMinutes()).padStart(2, '0')}`,
+        wbgt: wbgt,
       };
     });
 

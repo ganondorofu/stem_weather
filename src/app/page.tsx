@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherChart } from '@/components/weather-chart';
@@ -79,6 +79,7 @@ export default function Home() {
                 <Skeleton className="h-[365px] w-full rounded-lg" />
                 <Skeleton className="h-[365px] w-full rounded-lg" />
                 <Skeleton className="h-[365px] w-full rounded-lg" />
+                <Skeleton className="h-[365px] w-full rounded-lg" />
              </div>
            ) : error ? (
               <div className="flex items-center justify-center rounded-lg border-2 border-dashed h-full min-h-[500px]">
@@ -118,6 +119,15 @@ export default function Home() {
                 unit=" hPa"
                 Icon={Gauge}
                 strokeColor="hsl(var(--chart-4))"
+              />
+              <WeatherChart
+                data={data}
+                dataKey="wbgt"
+                title="WBGT (暑さ指数)"
+                description="WBGTの変化"
+                unit="°C"
+                Icon={SunDim}
+                strokeColor="hsl(var(--chart-5))"
               />
             </>
            ) : (
