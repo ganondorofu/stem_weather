@@ -1,0 +1,56 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { formatInTimeZone } from 'date-fns-tz';
+
+function calculateWBGT(Ta: number, RH: number): number {
+  const Tw =
+    Ta * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) +
+    Math.atan(Ta + RH) -
+    Math.atan(RH - 1.676331) +
+    0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) -
+    4.686035;
+
+  const WBGT = 0.7 * Tw + 0.3 * Ta;
+  return WBGT;
+}
+
+export async function GET() {
+  try {
+    const timeZone = 'Asia/Tokyo';
+    const now = new Date();
+    const dateString = formatInTimeZone(now, timeZone, 'yyyy-MM-dd');
+
+    const recordsRef = collection(db, 'weather_data', dateString, 'records');
+    const q = query(recordsRef, orderBy('timestamp', 'desc'), limit(1));
+    
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return NextResponse.json({ message: '本日のデータはまだありません。' }, { status: 404 });
+    }
+
+    const doc = querySnapshot.docs[0];
+    const data = doc.data();
+    const utcDate = (data.timestamp as Timestamp).toDate();
+    const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+
+    const temperature = data.temperature;
+    const humidity = data.humidity;
+    const wbgt = calculateWBGT(temperature, humidity);
+
+    const latestData = {
+      temperature: temperature,
+      humidity: humidity,
+      pressure: data.pressure,
+      wbgt: wbgt,
+      timestamp: jstDate.toISOString(),
+    };
+
+    return NextResponse.json(latestData);
+
+  } catch (error) {
+    console.error("Error fetching latest weather data:", error);
+    return NextResponse.json({ error: '最新の気象データの取得に失敗しました。' }, { status: 500 });
+  }
+}
