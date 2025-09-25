@@ -21,19 +21,20 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
 
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
-      const timestamp = (data.timestamp as Timestamp).toDate();
+      const utcDate = (data.timestamp as Timestamp).toDate();
+      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
 
       return {
         temperature: data.temperature,
         humidity: data.humidity,
         pressure: data.pressure,
-        hour: timestamp.getHours(),
-        minute: timestamp.getMinutes(),
-        year: timestamp.getFullYear(),
-        month: timestamp.getMonth() + 1,
-        day: timestamp.getDate(),
-        timestamp: timestamp,
-        time: `${String(timestamp.getHours()).padStart(2, '0')}:${String(timestamp.getMinutes()).padStart(2, '0')}`,
+        hour: jstDate.getUTCHours(),
+        minute: jstDate.getUTCMinutes(),
+        year: jstDate.getUTCFullYear(),
+        month: jstDate.getUTCMonth() + 1,
+        day: jstDate.getUTCDate(),
+        timestamp: jstDate,
+        time: `${String(jstDate.getUTCHours()).padStart(2, '0')}:${String(jstDate.getUTCMinutes()).padStart(2, '0')}`,
       };
     });
 
