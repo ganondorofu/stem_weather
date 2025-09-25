@@ -36,7 +36,8 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const utcDate = (data.timestamp as Timestamp).toDate();
-      const jstDate = new Date(utcDate.getTime()); // JSTとして扱う
+      // JSTに変換するために9時間加算
+      const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
 
       const temperature = data.temperature;
       const humidity = data.humidity;
@@ -46,13 +47,13 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
         temperature: temperature,
         humidity: humidity,
         pressure: data.pressure,
-        hour: jstDate.getHours(),
-        minute: jstDate.getMinutes(),
-        year: jstDate.getFullYear(),
-        month: jstDate.getMonth() + 1,
-        day: jstDate.getDate(),
+        hour: jstDate.getUTCHours(),
+        minute: jstDate.getUTCMinutes(),
+        year: jstDate.getUTCFullYear(),
+        month: jstDate.getUTCMonth() + 1,
+        day: jstDate.getUTCDate(),
         timestamp: jstDate,
-        time: `${String(jstDate.getHours()).padStart(2, '0')}:${String(jstDate.getMinutes()).padStart(2, '0')}`,
+        time: `${String(jstDate.getUTCHours()).padStart(2, '0')}:${String(jstDate.getUTCMinutes()).padStart(2, '0')}`,
         wbgt: wbgt,
       };
     });
