@@ -21,7 +21,8 @@ export default function Home() {
   const fetchData = (selectedDate: Date) => {
     startTransition(async () => {
       setError(null);
-      const result = await getDailyWeather(selectedDate);
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      const result = await getDailyWeather(dateString);
 
       if ('error' in result) {
         setError(result.error);

@@ -3,15 +3,13 @@
 import { db } from '@/lib/firebase';
 import type { WeatherDataPoint } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { format } from 'date-fns';
 
-export async function getDailyWeather(date: Date): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
+export async function getDailyWeather(dateString: string): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
   try {
-    if (!date) {
+    if (!dateString) {
         return { records: [] };
     }
     
-    const dateString = format(date, 'yyyy-MM-dd');
     const recordsRef = collection(db, 'weather_data', dateString, 'records');
     const q = query(recordsRef, orderBy('timestamp', 'asc'));
     
