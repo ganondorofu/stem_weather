@@ -16,6 +16,12 @@ function calculateWBGT(Ta: number, RH: number): number {
 }
 
 export async function GET() {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
   try {
     const timeZone = 'Asia/Tokyo';
     const now = new Date();
@@ -27,7 +33,7 @@ export async function GET() {
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return NextResponse.json({ message: '本日のデータはまだありません。' }, { status: 404 });
+      return NextResponse.json({ message: '本日のデータはまだありません。' }, { status: 404, headers });
     }
 
     const doc = querySnapshot.docs[0];
@@ -44,10 +50,21 @@ export async function GET() {
       timestamp: jstDate.toISOString(),
     };
 
-    return NextResponse.json(latestData);
+    return NextResponse.json(latestData, { headers });
 
   } catch (error) {
     console.error("Error fetching latest WBGT data:", error);
-    return NextResponse.json({ error: '最新のWBGTデータの取得に失敗しました。' }, { status: 500 });
+    return NextResponse.json({ error: '最新のWBGTデータの取得に失敗しました。' }, { status: 500, headers });
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
