@@ -3,7 +3,7 @@
 import { db } from '@/lib/firebase';
 import type { WeatherDataPoint } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
-import { format, toZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 
 export async function getDailyWeather(date: Date): Promise<{ records: WeatherDataPoint[] } | { error: string }> {
   try {
@@ -24,19 +24,18 @@ export async function getDailyWeather(date: Date): Promise<{ records: WeatherDat
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const timestamp = (data.timestamp as Timestamp).toDate();
-      const timeInJST = toZonedTime(timestamp, 'Asia/Tokyo');
 
       return {
         temperature: data.temperature,
         humidity: data.humidity,
         pressure: data.pressure,
-        hour: timeInJST.getHours(),
-        minute: timeInJST.getMinutes(),
-        year: timeInJST.getFullYear(),
-        month: timeInJST.getMonth() + 1,
-        day: timeInJST.getDate(),
+        hour: timestamp.getHours(),
+        minute: timestamp.getMinutes(),
+        year: timestamp.getFullYear(),
+        month: timestamp.getMonth() + 1,
+        day: timestamp.getDate(),
         timestamp: timestamp,
-        time: `${String(timeInJST.getHours()).padStart(2, '0')}:${String(timeInJST.getMinutes()).padStart(2, '0')}`,
+        time: `${String(timestamp.getHours()).padStart(2, '0')}:${String(timestamp.getMinutes()).padStart(2, '0')}`,
       };
     });
 
