@@ -3,6 +3,18 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { formatInTimeZone } from 'date-fns-tz';
 
+function calculateWBGT(Ta: number, RH: number): number {
+  const Tw =
+    Ta * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) +
+    Math.atan(Ta + RH) -
+    Math.atan(RH - 1.676331) +
+    0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) -
+    4.686035;
+
+  const WBGT = 0.7 * Tw + 0.3 * Ta;
+  return WBGT;
+}
+
 export async function GET() {
   try {
     const timeZone = 'Asia/Tokyo';
@@ -23,15 +35,19 @@ export async function GET() {
     const utcDate = (data.timestamp as Timestamp).toDate();
     const jstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000));
 
+    const temperature = data.temperature;
+    const humidity = data.humidity;
+    const wbgt = calculateWBGT(temperature, humidity);
+
     const latestData = {
-      temperature: data.temperature,
+      wbgt: wbgt,
       timestamp: jstDate.toISOString(),
     };
 
     return NextResponse.json(latestData);
 
   } catch (error) {
-    console.error("Error fetching latest temperature data:", error);
-    return NextResponse.json({ error: '最新の気温データの取得に失敗しました。' }, { status: 500 });
+    console.error("Error fetching latest WBGT data:", error);
+    return NextResponse.json({ error: '最新のWBGTデータの取得に失敗しました。' }, { status: 500 });
   }
 }
