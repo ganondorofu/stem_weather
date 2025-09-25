@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'お天気カレンダー',
-  description: 'カレンダーで過去の天気データを可視化するアプリです。',
+  title: 'STEM研究部気象情報',
+  description: 'STEM研究部が提供する気象情報可視化アプリです。',
 };
 
 export default function RootLayout({

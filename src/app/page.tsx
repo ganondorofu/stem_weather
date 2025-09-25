@@ -50,7 +50,7 @@ export default function Home() {
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
         <div className="container mx-auto px-4 py-4 flex items-center gap-2">
            <CalendarDays className="h-6 w-6 text-primary"/>
-           <h1 className="text-2xl font-bold font-headline">お天気カレンダー</h1>
+           <h1 className="text-2xl font-bold font-headline">STEM研究部気象情報</h1>
         </div>
       </header>
 
