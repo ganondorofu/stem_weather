@@ -1,3 +1,4 @@
+
 export interface WeatherDataPoint {
   temperature: number;
   humidity: number;
@@ -9,5 +10,29 @@ export interface WeatherDataPoint {
   day: number;
   timestamp: Date;
   time: string; 
-  wbgt?: number;
+  wbgt: number;
+}
+
+export interface DailySummary {
+  date: string; // "yyyy-MM-dd"
+  temperature: {
+    avg: number | null;
+    max: number | null;
+    min: number | null;
+  };
+  humidity: {
+    avg: number | null;
+    max: number | null;
+    min: number | null;
+  };
+  pressure: {
+    avg: number | null;
+    max: number | null;
+    min: number | null;
+  };
+  wbgt: {
+    avg: number | null;
+    max: number | null;
+    min: number | null;
+  };
 }
