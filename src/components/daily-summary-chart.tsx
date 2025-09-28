@@ -5,13 +5,10 @@ import type { ComponentType } from 'react';
 import {
   Line,
   LineChart,
-  Area,
-  AreaChart,
   CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -27,8 +24,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart';
 import type { DailySummary } from '@/lib/types';
 
@@ -54,9 +49,6 @@ export function DailySummaryChart({
   const chartData = data.map(d => ({
     date: d.date,
     avg: d[dataKey].avg,
-    max: d[dataKey].max,
-    min: d[dataKey].min,
-    range: d[dataKey].min !== null && d[dataKey].max !== null ? [d[dataKey].min, d[dataKey].max] : null,
   }));
 
   const chartConfig = {
@@ -64,22 +56,10 @@ export function DailySummaryChart({
       label: `平均${title}`,
       color: "hsl(var(--chart-1))",
     },
-    max: {
-      label: `最高${title}`,
-      color: "hsl(var(--chart-2))",
-    },
-    min: {
-      label: `最低${title}`,
-      color: "hsl(var(--chart-3))",
-    },
-    range: {
-        label: "範囲",
-        color: "hsl(var(--chart-1))",
-    }
   };
 
   const yDomain: [string | number, string | number] = ['auto', 'auto'];
-  const allValues = data.flatMap(d => [d[dataKey].avg, d[dataKey].max, d[dataKey].min]).filter(v => v !== null) as number[];
+  const allValues = data.map(d => d[dataKey].avg).filter(v => v !== null) as number[];
   if (allValues.length > 0) {
     const min = Math.min(...allValues);
     const max = Math.max(...allValues);
@@ -93,13 +73,13 @@ export function DailySummaryChart({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription>{description.replace(' (平均/最高/最低)', ' (平均)')}</CardDescription>
         </div>
         <Icon className="h-6 w-6 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[250px] w-full">
-          <AreaChart
+          <LineChart
             data={chartData}
             margin={{
               top: 5,
@@ -133,40 +113,13 @@ export function DailySummaryChart({
               content={
                 <ChartTooltipContent
                    labelFormatter={(label) => format(parseISO(label), "PPP", { locale: ja })}
-                   formatter={(value, name) => {
-                     if (name === 'range') return null;
+                   formatter={(value) => {
                      if (typeof value !== 'number') return null;
                      return `${value.toFixed(1)}${unit}`;
                    }}
                    indicator="dot"
                 />
               }
-            />
-             <defs>
-              <linearGradient id={`fill-range`} x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor={chartConfig.range.color}
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor={chartConfig.range.color}
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-             <Area
-              dataKey="range"
-              type="monotone"
-              fill={`url(#fill-range)`}
-              fillOpacity={0.4}
-              stroke={chartConfig.range.color}
-              strokeWidth={2}
-              strokeOpacity={0.5}
-              stackId="a"
-              connectNulls
-              name="範囲"
             />
             <Line
               dataKey="avg"
@@ -178,10 +131,9 @@ export function DailySummaryChart({
               connectNulls
               name={`平均${title}`}
             />
-          </AreaChart>
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>
   );
 }
-

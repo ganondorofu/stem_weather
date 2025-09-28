@@ -34,6 +34,7 @@ export default function Home() {
   const fetchDailyData = (selectedDate: Date) => {
     startTransition(async () => {
       setError(null);
+      setDailyData([]);
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const result = await getDailyWeather(dateString);
 
@@ -52,6 +53,7 @@ export default function Home() {
 
     startTransition(async () => {
       setError(null);
+      setRangeData([]);
       const result = await getDailySummaries(from, to);
       if ('error' in result) {
         setError(result.error);
@@ -63,19 +65,23 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (viewMode === 'daily' && date) {
-      fetchDailyData(date);
+    if (viewMode === 'daily') {
+        if(date){
+            fetchDailyData(date);
+        }
+    } else if (viewMode === 'range') {
+        fetchRangeData();
     }
-  }, [date]);
+  }, [viewMode, date]);
 
   useEffect(() => {
-    if (viewMode === 'range') {
-        fetchRangeData();
-    } else if (viewMode === 'daily' && date && dailyData.length === 0) {
-        // Initial load for daily or when switching back
-        fetchDailyData(date);
+    // Initial data fetch on component mount
+    if (viewMode === 'daily' && date) {
+      fetchDailyData(date);
+    } else if (viewMode === 'range') {
+      fetchRangeData();
     }
-  }, [viewMode]);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
@@ -193,7 +199,7 @@ export default function Home() {
                   data={rangeData}
                   dataKey="temperature"
                   title="気温"
-                  description="日ごとの気温の変化 (平均/最高/最低)"
+                  description="日ごとの気温の変化 (平均)"
                   unit="°C"
                   Icon={Thermometer}
                 />
@@ -201,7 +207,7 @@ export default function Home() {
                   data={rangeData}
                   dataKey="humidity"
                   title="湿度"
-                  description="日ごとの湿度の変化 (平均/最高/最低)"
+                  description="日ごとの湿度の変化 (平均)"
                   unit="%"
                   Icon={Droplets}
                 />
@@ -209,7 +215,7 @@ export default function Home() {
                   data={rangeData}
                   dataKey="pressure"
                   title="気圧"
-                  description="日ごとの気圧の変化 (平均/最高/最低)"
+                  description="日ごとの気圧の変化 (平均)"
                   unit="hPa"
                   Icon={Gauge}
                 />
@@ -217,7 +223,7 @@ export default function Home() {
                   data={rangeData}
                   dataKey="wbgt"
                   title="WBGT (暑さ指数)"
-                  description="日ごとのWBGTの変化 (平均/最高/最低)"
+                  description="日ごとのWBGTの変化 (平均)"
                   unit="°C"
                   Icon={SunDim}
                 />
