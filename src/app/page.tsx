@@ -65,10 +65,17 @@ export default function Home() {
   useEffect(() => {
     if (viewMode === 'daily' && date) {
       fetchDailyData(date);
-    } else if (viewMode === 'range') {
-      fetchRangeData();
     }
-  }, [viewMode, date]);
+  }, [date]);
+
+  useEffect(() => {
+    if (viewMode === 'range') {
+        fetchRangeData();
+    } else if (viewMode === 'daily' && date && dailyData.length === 0) {
+        // Initial load for daily or when switching back
+        fetchDailyData(date);
+    }
+  }, [viewMode]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
