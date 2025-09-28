@@ -130,7 +130,7 @@ export default function Home() {
                       className="rounded-md border"
                       locale={ja}
                       defaultMonth={range?.from}
-                      numberOfMonths={1}
+                      numberOfMonths={2}
                   />
                 )}
               </CardContent>
