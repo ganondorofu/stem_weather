@@ -28,7 +28,7 @@ export default function Home() {
 
   // Range view state
   const [range, setRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -6),
+    from: addDays(new Date(), -29),
     to: new Date(),
   });
   const [rangeData, setRangeData] = useState<DailySummary[]>([]);
