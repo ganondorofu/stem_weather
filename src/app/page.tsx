@@ -14,7 +14,6 @@ import type { WeatherDataPoint, DailySummary } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { DateRange } from "react-day-picker";
 import { addDays } from 'date-fns';
 
 type ViewMode = 'daily' | 'range';
@@ -26,11 +25,7 @@ export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [dailyData, setDailyData] = useState<WeatherDataPoint[]>([]);
 
-  // Range view state
-  const [range, setRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -29),
-    to: new Date(),
-  });
+  // Range view state (no more user selection)
   const [rangeData, setRangeData] = useState<DailySummary[]>([]);
 
   const [error, setError] = useState<string | null>(null);
@@ -51,11 +46,13 @@ export default function Home() {
     });
   };
 
-  const fetchRangeData = (selectedRange: DateRange) => {
-    if (!selectedRange.from || !selectedRange.to) return;
+  const fetchRangeData = () => {
+    const to = new Date();
+    const from = addDays(to, -29);
+
     startTransition(async () => {
       setError(null);
-      const result = await getDailySummaries(selectedRange.from!, selectedRange.to!);
+      const result = await getDailySummaries(from, to);
       if ('error' in result) {
         setError(result.error);
         setRangeData([]);
@@ -68,20 +65,14 @@ export default function Home() {
   useEffect(() => {
     if (viewMode === 'daily' && date) {
       fetchDailyData(date);
-    } else if (viewMode === 'range' && range) {
-      fetchRangeData(range);
+    } else if (viewMode === 'range') {
+      fetchRangeData();
     }
-  }, [viewMode, date, range]);
+  }, [viewMode, date]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(new Date(selectedDate));
-    }
-  };
-
-  const handleRangeSelect = (selectedRange: DateRange | undefined) => {
-    if (selectedRange) {
-      setRange(selectedRange);
     }
   };
 
@@ -107,7 +98,7 @@ export default function Home() {
                 <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="daily">1日の変化</TabsTrigger>
-                    <TabsTrigger value="range">日ごとの変化</TabsTrigger>
+                    <TabsTrigger value="range">過去30日の変化</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </CardHeader>
@@ -122,16 +113,9 @@ export default function Home() {
                       locale={ja}
                   />
                 ) : (
-                  <Calendar
-                      mode="range"
-                      selected={range}
-                      onSelect={handleRangeSelect}
-                      disabled={isPending}
-                      className="rounded-md border"
-                      locale={ja}
-                      defaultMonth={range?.from}
-                      numberOfMonths={2}
-                  />
+                  <div className="p-4 text-center text-muted-foreground">
+                    <p>過去30日間の気象データの推移を表示しています。</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
