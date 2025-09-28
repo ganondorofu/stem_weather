@@ -1,24 +1,42 @@
+
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useMemo } from 'react';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim, TrendingUp } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherChart } from '@/components/weather-chart';
-import { getDailyWeather } from '@/app/actions';
-import type { WeatherDataPoint } from '@/lib/types';
+import { DailySummaryChart } from '@/components/daily-summary-chart';
+import { getDailyWeather, getDailySummaries } from '@/app/actions';
+import type { WeatherDataPoint, DailySummary } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { DateRange } from "react-day-picker";
+import { addDays } from 'date-fns';
+
+type ViewMode = 'daily' | 'range';
 
 export default function Home() {
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  
+  // Daily view state
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [data, setData] = useState<WeatherDataPoint[]>([]);
+  const [dailyData, setDailyData] = useState<WeatherDataPoint[]>([]);
+
+  // Range view state
+  const [range, setRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -6),
+    to: new Date(),
+  });
+  const [rangeData, setRangeData] = useState<DailySummary[]>([]);
+
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  const fetchData = (selectedDate: Date) => {
+  
+  const fetchDailyData = (selectedDate: Date) => {
     startTransition(async () => {
       setError(null);
       const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -26,30 +44,58 @@ export default function Home() {
 
       if ('error' in result) {
         setError(result.error);
-        setData([]);
+        setDailyData([]);
       } else {
-        setData(result.records);
+        setDailyData(result.records);
+      }
+    });
+  };
+
+  const fetchRangeData = (selectedRange: DateRange) => {
+    if (!selectedRange.from || !selectedRange.to) return;
+    startTransition(async () => {
+      setError(null);
+      const result = await getDailySummaries(selectedRange.from!, selectedRange.to!);
+      if ('error' in result) {
+        setError(result.error);
+        setRangeData([]);
+      } else {
+        setRangeData(result.summaries);
       }
     });
   };
 
   useEffect(() => {
-    if (date) {
-      fetchData(date);
+    if (viewMode === 'daily' && date) {
+      fetchDailyData(date);
+    } else if (viewMode === 'range' && range) {
+      fetchRangeData(range);
     }
-  }, [date]);
+  }, [viewMode, date, range]);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(new Date(selectedDate));
     }
   };
-  
+
+  const handleRangeSelect = (selectedRange: DateRange | undefined) => {
+    if (selectedRange) {
+      setRange(selectedRange);
+    }
+  };
+
+  const isDataAvailable = useMemo(() => {
+    if (viewMode === 'daily') return dailyData.length > 0;
+    if (viewMode === 'range') return rangeData.length > 0;
+    return false;
+  }, [viewMode, dailyData, rangeData]);
+
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
         <div className="container mx-auto px-4 py-4 flex items-center gap-2">
-           <CalendarDays className="h-6 w-6 text-primary"/>
+           <TrendingUp className="h-6 w-6 text-primary"/>
            <h1 className="text-2xl font-bold font-headline">STEM研究部気象情報</h1>
         </div>
       </header>
@@ -57,19 +103,37 @@ export default function Home() {
       <main className="container mx-auto p-4 sm:p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-8">
             <Card className="shadow-md">
-                <CardHeader>
-                    <CardTitle>日付を選択</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={handleDateSelect}
-                        disabled={isPending}
-                        className="rounded-md border"
-                        locale={ja}
-                    />
-                </CardContent>
+              <CardHeader>
+                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="daily">1日の変化</TabsTrigger>
+                    <TabsTrigger value="range">日ごとの変化</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                {viewMode === 'daily' ? (
+                  <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={handleDateSelect}
+                      disabled={isPending}
+                      className="rounded-md border"
+                      locale={ja}
+                  />
+                ) : (
+                  <Calendar
+                      mode="range"
+                      selected={range}
+                      onSelect={handleRangeSelect}
+                      disabled={isPending}
+                      className="rounded-md border"
+                      locale={ja}
+                      defaultMonth={range?.from}
+                      numberOfMonths={1}
+                  />
+                )}
+              </CardContent>
             </Card>
         </div>
 
@@ -91,50 +155,89 @@ export default function Home() {
                     </AlertDescription>
                   </Alert>
               </div>
-           ) : data.length > 0 ? (
+           ) : isDataAvailable ? (
             <>
-              <WeatherChart
-                data={data}
-                dataKey="temperature"
-                title="気温"
-                description="気温の変化"
-                unit="°C"
-                Icon={Thermometer}
-                strokeColor="hsl(var(--chart-1))"
-              />
-              <WeatherChart
-                data={data}
-                dataKey="humidity"
-                title="湿度"
-                description="湿度の変化"
-                unit="%"
-                Icon={Droplets}
-                strokeColor="hsl(var(--chart-2))"
-              />
-              <WeatherChart
-                data={data}
-                dataKey="pressure"
-                title="気圧"
-                description="気圧の変化"
-                unit=" hPa"
-                Icon={Gauge}
-                strokeColor="hsl(var(--chart-4))"
-              />
-              <WeatherChart
-                data={data}
-                dataKey="wbgt"
-                title="WBGT (暑さ指数)"
-                description="WBGTの変化"
-                unit="°C"
-                Icon={SunDim}
-                strokeColor="hsl(var(--chart-5))"
-              />
+            {viewMode === 'daily' ? (
+              <>
+                <WeatherChart
+                  data={dailyData}
+                  dataKey="temperature"
+                  title="気温"
+                  description="気温の変化"
+                  unit="°C"
+                  Icon={Thermometer}
+                  strokeColor="hsl(var(--chart-1))"
+                />
+                <WeatherChart
+                  data={dailyData}
+                  dataKey="humidity"
+                  title="湿度"
+                  description="湿度の変化"
+                  unit="%"
+                  Icon={Droplets}
+                  strokeColor="hsl(var(--chart-2))"
+                />
+                <WeatherChart
+                  data={dailyData}
+                  dataKey="pressure"
+                  title="気圧"
+                  description="気圧の変化"
+                  unit=" hPa"
+                  Icon={Gauge}
+                  strokeColor="hsl(var(--chart-4))"
+                />
+                <WeatherChart
+                  data={dailyData}
+                  dataKey="wbgt"
+                  title="WBGT (暑さ指数)"
+                  description="WBGTの変化"
+                  unit="°C"
+                  Icon={SunDim}
+                  strokeColor="hsl(var(--chart-5))"
+                />
+              </>
+            ) : (
+               <>
+                <DailySummaryChart
+                  data={rangeData}
+                  dataKey="temperature"
+                  title="気温"
+                  description="日ごとの気温の変化 (平均/最高/最低)"
+                  unit="°C"
+                  Icon={Thermometer}
+                />
+                <DailySummaryChart
+                  data={rangeData}
+                  dataKey="humidity"
+                  title="湿度"
+                  description="日ごとの湿度の変化 (平均/最高/最低)"
+                  unit="%"
+                  Icon={Droplets}
+                />
+                <DailySummaryChart
+                  data={rangeData}
+                  dataKey="pressure"
+                  title="気圧"
+                  description="日ごとの気圧の変化 (平均/最高/最低)"
+                  unit="hPa"
+                  Icon={Gauge}
+                />
+                <DailySummaryChart
+                  data={rangeData}
+                  dataKey="wbgt"
+                  title="WBGT (暑さ指数)"
+                  description="日ごとのWBGTの変化 (平均/最高/最低)"
+                  unit="°C"
+                  Icon={SunDim}
+                />
+               </>
+            )}
             </>
            ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed text-center p-8 h-full min-h-[500px]">
                 <CloudOff className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold">記録されたデータがありません</h3>
-                <p className="text-muted-foreground mt-2">選択された日付の天気データはありません。</p>
+                <p className="text-muted-foreground mt-2">選択された日付/期間の天気データはありません。</p>
             </div>
            )}
         </div>

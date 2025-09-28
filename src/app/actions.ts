@@ -1,11 +1,12 @@
+
 'use server';
 
 import { db } from '@/lib/firebase';
-import type { WeatherDataPoint } from '@/lib/types';
+import type { WeatherDataPoint, DailySummary } from '@/lib/types';
 import { collection, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
+import { format, eachDayOfInterval, parseISO } from 'date-fns';
 
 function calculateWBGT(Ta: number, RH: number): number {
-  // 湿球温度（Tw）の計算（Stullの近似式）
   const Tw =
     Ta * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) +
     Math.atan(Ta + RH) -
@@ -13,7 +14,6 @@ function calculateWBGT(Ta: number, RH: number): number {
     0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) -
     4.686035;
 
-  // 屋内WBGTの計算
   const WBGT = 0.7 * Tw + 0.3 * Ta;
   return WBGT;
 }
@@ -36,7 +36,6 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
     const records: WeatherDataPoint[] = querySnapshot.docs.map(doc => {
       const data = doc.data();
       const utcDate = (data.timestamp as Timestamp).toDate();
-      // JSTに変換するために9時間加算
       const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
 
       const temperature = data.temperature;
@@ -66,5 +65,61 @@ export async function getDailyWeather(dateString: string): Promise<{ records: We
          return { error: 'Firestoreの権限設定により、気象データの取得に失敗しました。Firestoreのルールでweather_dataコレクションへの読み取りアクセスが許可されていることを確認してください。' };
     }
     return { error: '気象データの取得に失敗しました。詳細はサーバーコンソールを確認してください。' };
+  }
+}
+
+export async function getDailySummaries(startDate: Date, endDate: Date): Promise<{ summaries: DailySummary[] } | { error: string }> {
+  try {
+    const dateInterval = eachDayOfInterval({ start: startDate, end: endDate });
+    const dateStrings = dateInterval.map(d => format(d, 'yyyy-MM-dd'));
+
+    const promises = dateStrings.map(dateString => getDailyWeather(dateString));
+    const results = await Promise.all(promises);
+
+    const summaries: DailySummary[] = results.map((result, index) => {
+      const date = dateStrings[index];
+      if ('error' in result || result.records.length === 0) {
+        return {
+          date,
+          temperature: { avg: null, max: null, min: null },
+          humidity: { avg: null, max: null, min: null },
+          pressure: { avg: null, max: null, min: null },
+          wbgt: { avg: null, max: null, min: null },
+        };
+      }
+
+      const records = result.records;
+      const temperatures = records.map(r => r.temperature).filter(t => t !== undefined && t !== null) as number[];
+      const humidities = records.map(r => r.humidity).filter(h => h !== undefined && h !== null) as number[];
+      const pressures = records.map(r => r.pressure).filter(p => p !== undefined && p !== null) as number[];
+      const wbgts = records.map(r => r.wbgt).filter(w => w !== undefined && w !== null) as number[];
+
+      const calculateStats = (arr: number[]) => {
+        if (arr.length === 0) return { avg: null, max: null, min: null };
+        const sum = arr.reduce((a, b) => a + b, 0);
+        return {
+          avg: sum / arr.length,
+          max: Math.max(...arr),
+          min: Math.min(...arr),
+        };
+      };
+
+      return {
+        date,
+        temperature: calculateStats(temperatures),
+        humidity: calculateStats(humidities),
+        pressure: calculateStats(pressures),
+        wbgt: calculateStats(wbgts),
+      };
+    }).filter(summary => summary.temperature.avg !== null); // Only return days with data
+
+    return { summaries };
+
+  } catch (error) {
+    console.error("Error fetching daily summaries:", error);
+     if (error instanceof Error && error.message.includes('permission-denied')) {
+         return { error: 'Firestoreの権限設定により、気象データの取得に失敗しました。Firestoreのルールでweather_dataコレクションへの読み取りアクセスが許可されていることを確認してください。' };
+    }
+    return { error: '日ごとの集計データの取得に失敗しました。詳細はサーバーコンソールを確認してください。' };
   }
 }
