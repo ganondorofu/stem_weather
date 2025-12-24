@@ -140,10 +140,3 @@ export default function HistoryPage({ params }: { params: { metric: Metric } }) 
     </div>
   );
 }
-
-// Generate static paths for each metric
-export async function generateStaticParams() {
-  return Object.keys(metricDetails).map((metric) => ({
-    metric: metric,
-  }));
-}
