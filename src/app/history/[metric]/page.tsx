@@ -27,7 +27,7 @@ const metricDetails: Record<Metric, { title: string; unit: string; Icon: React.C
 
 export default function HistoryPage({ params }: { params: { metric: Metric } }) {
   const router = useRouter();
-  const metric = params.metric;
+  const metric: Metric = params.metric;
 
   const [summaries, setSummaries] = useState<DailySummary[]>([]);
   const [error, setError] = useState<string | null>(null);
