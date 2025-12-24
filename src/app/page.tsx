@@ -5,7 +5,7 @@ import { useState, useEffect, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim, TrendingUp, History } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim, TrendingUp, History, ChevronDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherChart } from '@/components/weather-chart';
@@ -17,6 +17,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type ViewMode = 'daily' | 'range';
 
@@ -105,12 +111,29 @@ export default function Home() {
                 <TrendingUp className="h-6 w-6 text-primary"/>
                 <h1 className="text-2xl font-bold font-headline">STEM研究部気象情報</h1>
             </div>
-            <Button variant="outline" asChild>
-                <Link href="/wbgt-history">
-                    <History className="h-4 w-4 mr-2" />
-                    WBGT履歴
-                </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <History className="h-4 w-4 mr-2" />
+                  履歴データ
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link href="/history/temperature">気温</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/history/humidity">湿度</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/history/pressure">気圧</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/history/wbgt">WBGT</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </header>
 
