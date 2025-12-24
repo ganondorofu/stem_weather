@@ -56,7 +56,7 @@ export default function WbgtHistoryPage() {
         <Card>
           <CardHeader>
             <CardTitle>WBGT履歴</CardTitle>
-            <CardDescription>過去1年間の日ごとのWBGT(暑さ指数)の平均値、最高値、最低値です。</CardDescription>
+            <CardDescription>過去1年間の日ごとのWBGT(暑さ指数)の平均値です。</CardDescription>
           </CardHeader>
           <CardContent>
             {isPending ? (
@@ -76,10 +76,8 @@ export default function WbgtHistoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[150px]">日付</TableHead>
+                      <TableHead className="w-[200px]">日付</TableHead>
                       <TableHead className="text-right">平均 WBGT (°C)</TableHead>
-                      <TableHead className="text-right">最高 WBGT (°C)</TableHead>
-                      <TableHead className="text-right">最低 WBGT (°C)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -90,12 +88,6 @@ export default function WbgtHistoryPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           {summary.wbgt.avg?.toFixed(2) ?? '-'}
-                        </TableCell>
-                        <TableCell className="text-right text-red-400">
-                          {summary.wbgt.max?.toFixed(2) ?? '-'}
-                        </TableCell>
-                        <TableCell className="text-right text-blue-400">
-                          {summary.wbgt.min?.toFixed(2) ?? '-'}
                         </TableCell>
                       </TableRow>
                     ))}
