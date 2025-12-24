@@ -2,9 +2,10 @@
 'use client';
 
 import { useState, useEffect, useTransition, useMemo } from 'react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim, TrendingUp } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, CalendarDays, AlertCircle, CloudOff, SunDim, TrendingUp, History } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeatherChart } from '@/components/weather-chart';
@@ -15,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { addDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 type ViewMode = 'daily' | 'range';
 
@@ -98,9 +100,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-2">
-           <TrendingUp className="h-6 w-6 text-primary"/>
-           <h1 className="text-2xl font-bold font-headline">STEM研究部気象情報</h1>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                <TrendingUp className="h-6 w-6 text-primary"/>
+                <h1 className="text-2xl font-bold font-headline">STEM研究部気象情報</h1>
+            </div>
+            <Button variant="outline" asChild>
+                <Link href="/wbgt-history">
+                    <History className="h-4 w-4 mr-2" />
+                    WBGT履歴
+                </Link>
+            </Button>
         </div>
       </header>
 
