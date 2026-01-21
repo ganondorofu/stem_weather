@@ -22,6 +22,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 
 type ViewMode = 'daily' | 'range';
@@ -120,6 +122,7 @@ export default function Home() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuLabel>過去のデータ（表）</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                   <Link href="/history/temperature">気温</Link>
                 </DropdownMenuItem>
@@ -131,6 +134,20 @@ export default function Home() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/history/wbgt">WBGT</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>長期トレンド（グラフ）</DropdownMenuLabel>
+                 <DropdownMenuItem asChild>
+                  <Link href="/trends/temperature">気温</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/trends/humidity">湿度</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/trends/pressure">気圧</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/trends/wbgt">WBGT</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
