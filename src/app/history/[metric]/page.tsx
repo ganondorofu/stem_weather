@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
@@ -15,7 +14,6 @@ import { getDailySummaries } from '@/app/actions';
 import type { DailySummary } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { DailySummaryChart } from '@/components/daily-summary-chart';
 
 type Metric = 'temperature' | 'humidity' | 'pressure' | 'wbgt';
 
@@ -94,13 +92,10 @@ export default function HistoryPage({ params }: { params: { metric: Metric } }) 
           </CardHeader>
           <CardContent>
             {isPending ? (
-              <div className="space-y-8">
-                <Skeleton className="h-[300px] w-full" />
-                <div className="space-y-2">
-                  {[...Array(10)].map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
+              <div className="space-y-2">
+                {[...Array(10)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
               </div>
             ) : error ? (
               <Alert variant="destructive" className="w-full">
@@ -109,37 +104,27 @@ export default function HistoryPage({ params }: { params: { metric: Metric } }) 
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             ) : summaries.length > 0 ? (
-              <div className="space-y-8">
-                <DailySummaryChart
-                  data={summaries.slice().sort((a, b) => a.date.localeCompare(b.date))}
-                  dataKey={metric}
-                  title={currentMetricDetails.title}
-                  description={`過去365日間の${currentMetricDetails.title}の推移`}
-                  unit={currentMetricDetails.unit}
-                  Icon={currentMetricDetails.Icon}
-                />
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">日付</TableHead>
-                        <TableHead className="text-right">平均 {currentMetricDetails.title} ({currentMetricDetails.unit})</TableHead>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">日付</TableHead>
+                      <TableHead className="text-right">平均 {currentMetricDetails.title} ({currentMetricDetails.unit})</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {summaries.map((summary) => (
+                      <TableRow key={summary.date}>
+                        <TableCell className="font-medium">
+                          {format(parseISO(summary.date), 'yyyy年 M月 d日 (E)', { locale: ja })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {summary[metric]?.avg?.toFixed(2) ?? '-'}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {summaries.map((summary) => (
-                        <TableRow key={summary.date}>
-                          <TableCell className="font-medium">
-                            {format(parseISO(summary.date), 'yyyy年 M月 d日 (E)', { locale: ja })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {summary[metric]?.avg?.toFixed(2) ?? '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed text-center p-8 min-h-[300px]">
