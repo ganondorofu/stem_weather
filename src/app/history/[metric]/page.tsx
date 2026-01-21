@@ -24,9 +24,8 @@ const metricDetails: Record<Metric, { title: string; unit: string; Icon: React.C
   wbgt: { title: 'WBGT (暑さ指数)', unit: '°C', Icon: SunDim },
 };
 
-export default function HistoryPage({ params }: { params: { metric: Metric } }) {
+export default function HistoryPage({ params: { metric } }: { params: { metric: Metric } }) {
   const router = useRouter();
-  const metric: Metric = params.metric;
 
   const [summaries, setSummaries] = useState<DailySummary[]>([]);
   const [error, setError] = useState<string | null>(null);
