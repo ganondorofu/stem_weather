@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/a
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "***REMOVED_FIREBASE_API_KEY***",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "weather-logger-1174d.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "weather-logger-1174d",
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "weather-logger-1174d.appspot.com",
